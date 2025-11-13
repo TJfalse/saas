@@ -32,7 +32,6 @@ import {
 const router = Router();
 
 router.use(authMiddleware);
-router.use(tenantMiddleware);
 
 router.get(
   "/:tenantId",
@@ -42,33 +41,39 @@ router.get(
 );
 router.post(
   "/:tenantId",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   validateRequest(createMenuItemSchema),
   createMenuItem
 );
 router.get(
   "/:tenantId/item/:itemId",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   getMenuItemById
 );
 router.put(
   "/:tenantId/:itemId",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   validateRequest(updateMenuItemSchema),
   updateMenuItem
 );
 router.patch(
   "/:tenantId/:itemId/deactivate",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   deactivateMenuItem
 );
 router.get(
   "/:tenantId/categories",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   getMenuCategories
 );
 router.get(
   "/:tenantId/category/:category",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   getMenuItemsByCategory
 );

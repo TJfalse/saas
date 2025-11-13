@@ -30,7 +30,7 @@ export const createStaffSchema = Joi.object({
       "any.only":
         "role must be one of: OWNER, ADMIN, MANAGER, WAITER, KITCHEN, ACCOUNTANT, STAFF",
     }),
-  branchId: Joi.string().optional().uuid(),
+  branchId: Joi.string().optional(),
 });
 
 export const updateStaffSchema = Joi.object({

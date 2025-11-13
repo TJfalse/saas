@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authMiddleware from "../middlewares/auth.middleware";
-import tenantMiddleware from "../middlewares/tenant.middleware";
 import {
   validateRequest,
   validateParams,
@@ -14,7 +13,6 @@ import OrderController from "../controllers/order.controller";
 const router = Router();
 
 router.use(authMiddleware);
-router.use(tenantMiddleware);
 
 router.post(
   "/",

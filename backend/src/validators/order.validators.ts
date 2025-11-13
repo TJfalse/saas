@@ -3,20 +3,15 @@
  * Validation schemas for order management endpoints
  */
 
-const Joi = require("joi");
+import Joi from "joi";
 
 export const createOrderSchema = Joi.object({
-  branchId: Joi.string().uuid().required().messages({
-    "string.guid": "branchId must be a valid UUID",
-    "any.required": "branchId is required",
-  }),
-  tableId: Joi.string().optional().uuid(),
+  branchId: Joi.string().optional(),
+  tableId: Joi.string().optional(),
   items: Joi.array()
     .items(
       Joi.object({
-        productId: Joi.string().uuid().required().messages({
-          "string.guid": "productId must be a valid UUID",
-        }),
+        productId: Joi.string().required(),
         qty: Joi.number().required().positive().integer(),
         price: Joi.number().required().positive(),
         specialRequest: Joi.string().optional().max(200),
@@ -30,9 +25,7 @@ export const createOrderSchema = Joi.object({
 });
 
 export const addOrderItemSchema = Joi.object({
-  productId: Joi.string().uuid().required().messages({
-    "string.guid": "productId must be a valid UUID",
-  }),
+  productId: Joi.string().required(),
   qty: Joi.number().required().positive().integer(),
   price: Joi.number().required().positive(),
   specialRequest: Joi.string().optional().max(200),
@@ -58,13 +51,9 @@ export const updateOrderItemStatusSchema = Joi.object({
 });
 
 export const orderIdParamSchema = Joi.object({
-  id: Joi.string().uuid().required().messages({
-    "string.guid": "id must be a valid UUID",
-  }),
+  id: Joi.string().required()
 });
 
 export const itemIdParamSchema = Joi.object({
-  itemId: Joi.string().uuid().required().messages({
-    "string.guid": "itemId must be a valid UUID",
-  }),
+  itemId: Joi.string().required()
 });

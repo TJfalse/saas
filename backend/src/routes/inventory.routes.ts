@@ -19,11 +19,11 @@ import {
 const router = Router();
 
 router.use(authMiddleware);
-router.use(tenantMiddleware);
 
 // More specific routes FIRST (before generic :tenantId)
 router.get(
   "/:tenantId/low-stock",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   validateQuery(lowStockQuerySchema),
   InventoryController.getLowStockItems
@@ -32,24 +32,28 @@ router.get(
 // Generic routes after specific ones
 router.get(
   "/:tenantId",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   validateQuery(inventoryQuerySchema),
   InventoryController.getInventoryItems
 );
 router.post(
   "/:tenantId",
+  tenantMiddleware,
   validateParams(tenantIdParamSchema),
   validateRequest(createInventoryItemSchema),
   InventoryController.createInventoryItem
 );
 router.put(
   "/:itemId",
+  tenantMiddleware,
   validateParams(itemIdParamSchema),
   validateRequest(updateInventoryItemSchema),
   InventoryController.updateInventoryItem
 );
 router.delete(
   "/:itemId",
+  tenantMiddleware,
   validateParams(itemIdParamSchema),
   InventoryController.deleteInventoryItem
 );

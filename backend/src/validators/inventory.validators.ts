@@ -6,8 +6,7 @@
 const Joi = require("joi");
 
 export const createInventoryItemSchema = Joi.object({
-  productId: Joi.string().uuid().required().messages({
-    "string.guid": "productId must be a valid UUID",
+  productId: Joi.string().required().messages({
     "any.required": "productId is required",
   }),
   qty: Joi.number().integer().min(0).required().messages({
@@ -27,15 +26,13 @@ export const updateInventoryItemSchema = Joi.object({
   });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().required().messages({
     "any.required": "tenantId is required",
   }),
 });
 
 export const itemIdParamSchema = Joi.object({
-  itemId: Joi.string().uuid().required().messages({
-    "string.guid": "itemId must be a valid UUID",
+  itemId: Joi.string().required().messages({
     "any.required": "itemId is required",
   }),
 });

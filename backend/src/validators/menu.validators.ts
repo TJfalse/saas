@@ -25,15 +25,13 @@ export const updateMenuItemSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().required().messages({
     "any.required": "tenantId is required",
   }),
 });
 
 export const itemIdParamSchema = Joi.object({
-  itemId: Joi.string().uuid().required().messages({
-    "string.guid": "itemId must be a valid UUID",
+  itemId: Joi.string().required().messages({
     "any.required": "itemId is required",
   }),
 });

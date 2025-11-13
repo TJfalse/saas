@@ -69,20 +69,20 @@ export const assignRoleSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().required().messages({
+    "any.required": "tenantId is required",
   }),
 });
 
 export const staffIdParamSchema = Joi.object({
-  staffId: Joi.string().uuid().required().messages({
-    "string.guid": "staffId must be a valid UUID",
+  staffId: Joi.string().required().messages({
+    "any.required": "staffId is required",
   }),
 });
 
 export const branchIdParamSchema = Joi.object({
-  branchId: Joi.string().uuid().required().messages({
-    "string.guid": "branchId must be a valid UUID",
+  branchId: Joi.string().required().messages({
+    "any.required": "branchId is required",
   }),
 });
 

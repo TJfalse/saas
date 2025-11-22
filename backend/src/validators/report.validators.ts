@@ -28,7 +28,7 @@ export const salesReportQuerySchema = Joi.object({
 });
 
 export const inventoryReportQuerySchema = Joi.object({
-  branchId: Joi.string().optional().uuid(),
+  branchId: Joi.string().min(1).optional(),
 });
 
 export const staffPerformanceQuerySchema = Joi.object({
@@ -42,7 +42,8 @@ export const paymentReportQuerySchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
+    "any.required": "tenantId is required",
   }),
 });

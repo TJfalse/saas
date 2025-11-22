@@ -237,11 +237,11 @@ const MenuPage: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={formData.price}
+                value={formData.price || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    price: parseFloat(e.target.value),
+                    price: e.target.value ? parseFloat(e.target.value) : 0,
                   })
                 }
                 placeholder="0.00"
@@ -286,11 +286,11 @@ const MenuPage: React.FC = () => {
               </label>
               <input
                 type="number"
-                value={formData.costPrice}
+                value={formData.costPrice || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    costPrice: parseFloat(e.target.value),
+                    costPrice: e.target.value ? parseFloat(e.target.value) : 0,
                   })
                 }
                 placeholder="0.00"

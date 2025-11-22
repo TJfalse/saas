@@ -6,8 +6,8 @@
 const Joi = require("joi");
 
 export const createInvoiceSchema = Joi.object({
-  orderId: Joi.string().uuid().required().messages({
-    "string.guid": "orderId must be a valid UUID",
+  orderId: Joi.string().min(1).required().messages({
+    "string.empty": "orderId cannot be empty",
     "any.required": "orderId is required",
   }),
   amount: Joi.number().positive().required().messages({
@@ -36,16 +36,16 @@ export const processPaymentSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
     "any.required": "tenantId is required",
   }),
 });
 
 export const invoiceIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required(),
-  invoiceId: Joi.string().uuid().required().messages({
-    "string.guid": "invoiceId must be a valid UUID",
+  tenantId: Joi.string().min(1).required(),
+  invoiceId: Joi.string().min(1).required().messages({
+    "string.empty": "invoiceId cannot be empty",
     "any.required": "invoiceId is required",
   }),
 });

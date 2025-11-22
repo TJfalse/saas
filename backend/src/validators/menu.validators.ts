@@ -25,7 +25,8 @@ export const updateMenuItemSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().required().messages({
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
     "any.required": "tenantId is required",
   }),
 });
@@ -42,7 +43,7 @@ export const categoryParamSchema = Joi.object({
 
 export const menuQuerySchema = Joi.object({
   category: Joi.string().optional().max(50),
-  branchId: Joi.string().optional().uuid(),
+  branchId: Joi.string().min(1).optional(),
   page: Joi.number().optional().positive(),
   limit: Joi.number().optional().positive().max(100),
 });

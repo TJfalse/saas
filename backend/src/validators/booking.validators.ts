@@ -6,11 +6,11 @@
 const Joi = require("joi");
 
 export const createBookingSchema = Joi.object({
-  branchId: Joi.string().uuid().required().messages({
-    "string.guid": "branchId must be a valid UUID",
+  branchId: Joi.string().min(1).required().messages({
+    "string.empty": "branchId cannot be empty",
     "any.required": "branchId is required",
   }),
-  tableId: Joi.string().uuid().optional(),
+  tableId: Joi.string().min(1).optional(),
   customerName: Joi.string().min(2).max(100).required().messages({
     "string.min": "customerName must be at least 2 characters",
     "any.required": "customerName is required",
@@ -33,8 +33,8 @@ export const createBookingSchema = Joi.object({
 }).with("startTime", "endTime");
 
 export const branchIdParamSchema = Joi.object({
-  branchId: Joi.string().uuid().required().messages({
-    "string.guid": "branchId must be a valid UUID",
+  branchId: Joi.string().min(1).required().messages({
+    "string.empty": "branchId cannot be empty",
     "any.required": "branchId is required",
   }),
 });

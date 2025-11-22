@@ -37,7 +37,8 @@ export const createBranchSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  id: Joi.string().uuid().required().messages({
-    "string.guid": "id must be a valid UUID",
+  id: Joi.string().min(1).required().messages({
+    "string.empty": "id cannot be empty",
+    "any.required": "id is required",
   }),
 });

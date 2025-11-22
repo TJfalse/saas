@@ -46,7 +46,7 @@ export const updateStaffSchema = Joi.object({
       "ACCOUNTANT",
       "STAFF"
     ),
-  branchId: Joi.string().optional().uuid(),
+  branchId: Joi.string().min(1).optional(),
   password: Joi.string().optional().min(8).max(100),
 });
 
@@ -69,7 +69,8 @@ export const assignRoleSchema = Joi.object({
 });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().required().messages({
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
     "any.required": "tenantId is required",
   }),
 });

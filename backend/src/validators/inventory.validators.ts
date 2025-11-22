@@ -26,7 +26,8 @@ export const updateInventoryItemSchema = Joi.object({
   });
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().required().messages({
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
     "any.required": "tenantId is required",
   }),
 });
@@ -38,11 +39,11 @@ export const itemIdParamSchema = Joi.object({
 });
 
 export const inventoryQuerySchema = Joi.object({
-  branchId: Joi.string().uuid().optional(),
+  branchId: Joi.string().min(1).optional(),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(50),
 });
 
 export const lowStockQuerySchema = Joi.object({
-  branchId: Joi.string().uuid().optional(),
+  branchId: Joi.string().min(1).optional(),
 });

@@ -6,8 +6,8 @@
 const Joi = require("joi");
 
 export const tenantIdParamSchema = Joi.object({
-  tenantId: Joi.string().uuid().required().messages({
-    "string.guid": "tenantId must be a valid UUID",
+  tenantId: Joi.string().min(1).required().messages({
+    "string.empty": "tenantId cannot be empty",
     "any.required": "tenantId is required",
   }),
 });

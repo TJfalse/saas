@@ -6,14 +6,14 @@
 const Joi = require("joi");
 
 export const branchIdParamSchema = Joi.object({
-  branchId: Joi.string().uuid().required().messages({
-    "string.guid": "branchId must be a valid UUID",
+  branchId: Joi.string().min(1).required().messages({
+    "string.empty": "branchId cannot be empty",
   }),
 });
 
 export const kotIdParamSchema = Joi.object({
-  id: Joi.string().uuid().required().messages({
-    "string.guid": "id must be a valid UUID",
+  id: Joi.string().min(1).required().messages({
+    "string.empty": "id cannot be empty",
   }),
 });
 

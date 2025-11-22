@@ -16,15 +16,14 @@ interface AuthState {
   setError: (error: string | null) => void
   logout: () => void
 }
-
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,  
       error: null,
 
       setUser: (user) => set({ user, isAuthenticated: true }),
@@ -51,7 +50,8 @@ export const useAuthStore = create<AuthState>()(
       }),
     }
   )
-)
+);
+
 
 // ============================================================================
 // UI State

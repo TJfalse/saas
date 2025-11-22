@@ -61,6 +61,7 @@ const MenuPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(tenantId);
     if (!tenantId || !formData.name || !formData.price) {
       toast.error("Fill all required fields");
       return;

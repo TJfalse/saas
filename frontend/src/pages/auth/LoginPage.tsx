@@ -3,12 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import { authService } from "@/api/services";
-import { useAuthStore } from "@/store";
+import { useAuthStore, useDataStore } from "@/store";
 import { LoginPayload } from "@/types/api.types";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { setUser, setTokens } = useAuthStore();
+  const {setTenantId} = useDataStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<LoginPayload>({
@@ -33,7 +34,7 @@ const LoginPage: React.FC = () => {
       const response = await authService.login(formData);
       setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
-      localStorage.setItem("user", JSON.stringify(response.user));
+      setTenantId(response.user.tenantId);
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error: any) {

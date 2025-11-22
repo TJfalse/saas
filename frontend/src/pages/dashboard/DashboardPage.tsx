@@ -14,6 +14,7 @@ import {
   SalesAnalytics,
   TopProduct,
 } from "@/types/api.types";
+import { Navigate } from "react-router-dom";
 
 interface ChartData {
   date: string;
@@ -32,9 +33,11 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     const loadDashboard = async () => {
       if (!tenantId) {
-        toast.error("Tenant ID not set");
-        return;
-      }
+            toast.error("tenant Id not set");
+            setLoading(false);
+            return
+}
+
 
       try {
         setLoading(true);

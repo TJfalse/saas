@@ -50,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
+          localStorage.removeItem("tenantId");
         }
       },
     }),

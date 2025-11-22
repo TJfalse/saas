@@ -9,7 +9,7 @@ import { LoginPayload } from "@/types/api.types";
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { setUser, setTokens } = useAuthStore();
-  const {setTenantId} = useDataStore();
+  const { setTenantId } = useDataStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<LoginPayload>({
@@ -35,6 +35,8 @@ const LoginPage: React.FC = () => {
       setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
       setTenantId(response.user.tenantId);
+      // Persist tenantId to localStorage
+      localStorage.setItem("tenantId", response.user.tenantId);
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error: any) {

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuthStore } from "@/store";
+import { useAuthStore, useDataStore } from "@/store";
 
 /**
  * AuthInitializer - Ensures auth state is properly loaded on app startup
@@ -9,21 +9,28 @@ export const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   useEffect(() => {
-    const store = useAuthStore.getState();
+    const authStore = useAuthStore.getState();
+    const dataStore = useDataStore.getState();
 
-    // If we have an access token but it's not set in the store, restore it
+    // Restore auth state
     const savedAccessToken = localStorage.getItem("accessToken");
     const savedRefreshToken = localStorage.getItem("refreshToken");
     const savedUser = localStorage.getItem("user");
+    const savedTenantId = localStorage.getItem("tenantId");
 
     if (savedAccessToken && savedRefreshToken && savedUser) {
       try {
         const user = JSON.parse(savedUser);
-        store.setTokens(savedAccessToken, savedRefreshToken);
-        store.setUser(user);
+        authStore.setTokens(savedAccessToken, savedRefreshToken);
+        authStore.setUser(user);
+
+        // Restore tenant data
+        if (savedTenantId) {
+          dataStore.setTenantId(savedTenantId);
+        }
       } catch (e) {
         // If parsing fails, clear auth
-        store.logout();
+        authStore.logout();
       }
     }
   }, []);

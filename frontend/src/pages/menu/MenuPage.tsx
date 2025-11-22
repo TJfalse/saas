@@ -9,6 +9,7 @@ const MenuPage: React.FC = () => {
   const { user } = useAuthStore();
   const { tenantId } = useDataStore();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -32,9 +33,14 @@ const MenuPage: React.FC = () => {
   }, [tenantId, selectedCategory]);
 
   const loadMenuItems = async () => {
-    if (!tenantId) return;
+    if (!tenantId) {
+      setError("Tenant ID not found. Please log in again.");
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
+      setError(null);
       let data: MenuItem[];
       if (selectedCategory) {
         data = await menuService.getByCategory(tenantId, selectedCategory);
@@ -43,7 +49,13 @@ const MenuPage: React.FC = () => {
       }
       setItems(data || []);
     } catch (error: any) {
-      toast.error("Failed to load menu items");
+      const errorMsg =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to load menu items";
+      setError(errorMsg);
+      toast.error(errorMsg);
+      console.error("Error loading menu items:", error);
     } finally {
       setLoading(false);
     }
@@ -55,6 +67,7 @@ const MenuPage: React.FC = () => {
       const data = await menuService.getCategories(tenantId);
       setCategories(data || []);
     } catch (error: any) {
+      console.error("Error loading categories:", error);
       toast.error("Failed to load categories");
     }
   };
@@ -131,16 +144,54 @@ const MenuPage: React.FC = () => {
     }
   };
 
-  const filteredItems = items.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = Array.isArray(items)
+    ? items.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   if (loading && !items.length) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader className="animate-spin text-primary-600" size={48} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">⚠️</div>
+          <p className="text-lg text-slate-900 font-semibold mb-2">
+            Error Loading Menu
+          </p>
+          <p className="text-slate-600 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadMenuItems();
+            }}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tenantId) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-lg text-slate-600 mb-4">
+            Tenant information not found
+          </p>
+          <p className="text-sm text-slate-500">Please log in again</p>
+        </div>
       </div>
     );
   }
@@ -323,11 +374,12 @@ const MenuPage: React.FC = () => {
           className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
+          {Array.isArray(categories) &&
+            categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
         </select>
       </div>
 

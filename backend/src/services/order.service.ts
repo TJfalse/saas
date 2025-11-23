@@ -121,6 +121,27 @@ class OrderService {
           },
         });
 
+        // Update stock for inventory-tracked products
+        for (const item of items) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+
+          if (product?.isInventoryTracked) {
+            await tx.stockItem.updateMany({
+              where: {
+                productId: item.productId,
+                tenantId,
+              },
+              data: {
+                qty: {
+                  decrement: item.qty,
+                },
+              },
+            });
+          }
+        }
+
         return newOrder;
       });
 
@@ -135,15 +156,29 @@ class OrderService {
       });
 
       return {
-        id: order.id,
-        tenantId: order.tenantId,
-        branchId: order.branchId,
-        total: order.total,
-        tax: order.tax,
-        discount: order.discount,
-        status: order.status,
-        items: order.items,
-        createdAt: order.createdAt,
+        success: true,
+        data: {
+          id: order.id,
+          tenantId: order.tenantId,
+          branchId: order.branchId,
+          tableId: order.tableId,
+          subtotal: total.toString(),
+          tax: taxAmount.toString(),
+          discount: discountAmount.toString(),
+          total: finalTotal.toString(),
+          status: order.status,
+          items: order.items.map((item) => ({
+            id: item.id,
+            productId: item.productId,
+            qty: item.qty,
+            price: item.price.toString(),
+            total: new Decimal(item.qty).times(item.price).toString(),
+            specialRequest: item.specialRequest,
+            status: item.status,
+          })),
+          createdAt: order.createdAt,
+        },
+        message: "Order created successfully",
       };
     } catch (error) {
       logger.error("Error creating order:", error);

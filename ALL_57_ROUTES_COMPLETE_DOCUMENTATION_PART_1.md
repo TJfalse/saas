@@ -1575,24 +1575,25 @@ Audit Log:
 
 **Purpose:** Create new order
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateRequest(createOrderSchema)
+**Middleware:** authMiddleware → validateRequest(createOrderSchema)
 **Authorization:** WAITER, MANAGER, OWNER
+**Important:** branchId is REQUIRED (orders must be tied to specific branch/location)
 
 #### Request Body:
 
 ```json
 {
-  "branchId": "branch-001-uuid",
-  "tableId": "table-05-uuid",
+  "branchId": "branch-001-cuid",
+  "tableId": "table-05-cuid",
   "items": [
     {
-      "productId": "item-001-uuid",
+      "productId": "item-001-cuid",
       "qty": 2,
       "price": 350,
       "specialRequest": "Extra cheese"
     },
     {
-      "productId": "item-003-uuid",
+      "productId": "item-003-cuid",
       "qty": 2,
       "price": 50,
       "specialRequest": null
@@ -1607,15 +1608,15 @@ Audit Log:
 #### Request Validation Rules:
 
 ```
-- branchId: UUID (required)
-- tableId: UUID (optional)
+- branchId: CUID string (REQUIRED) ← Orders tied to specific branch
+- tableId: CUID string (optional)
 - items: array of objects (required, minimum 1 item)
-  - productId: UUID (required)
+  - productId: CUID string (required)
   - qty: positive integer (required)
   - price: positive number (required)
   - specialRequest: string, max 200 characters (optional)
-- tax: number, minimum 0 (optional)
-- discount: number, minimum 0 (optional)
+- tax: number, minimum 0 (optional, default: 0)
+- discount: number, minimum 0 (optional, default: 0)
 - notes: string, max 500 characters (optional)
 ```
 
@@ -1623,38 +1624,56 @@ Audit Log:
 
 ```json
 {
-  "id": "order-001-uuid",
-  "tenantId": "tenant-pizzahub-001-uuid",
-  "branchId": "branch-001-uuid",
-  "tableId": "table-05-uuid",
-  "items": [
-    {
-      "id": "orderitem-001-uuid",
-      "productId": "item-001-uuid",
-      "productName": "Margherita Pizza",
-      "qty": 2,
-      "price": "350.00",
-      "total": "700.00",
-      "specialRequest": "Extra cheese",
-      "status": "PENDING"
-    },
-    {
-      "id": "orderitem-002-uuid",
-      "productId": "item-003-uuid",
-      "productName": "Coca Cola",
-      "qty": 2,
-      "price": "50.00",
-      "total": "100.00",
-      "status": "PENDING"
-    }
-  ],
-  "subtotal": "800.00",
-  "tax": "40.00",
-  "discount": "0.00",
-  "total": "840.00",
-  "status": "PENDING",
-  "createdAt": "2025-11-12T19:31:00Z",
-  "updatedAt": "2025-11-12T19:31:00Z"
+  "success": true,
+  "data": {
+    "id": "order-001-cuid",
+    "tenantId": "tenant-pizzahub-001-cuid",
+    "branchId": "branch-001-cuid",
+    "tableId": "table-05-cuid",
+    "items": [
+      {
+        "id": "orderitem-001-cuid",
+        "productId": "item-001-cuid",
+        "qty": 2,
+        "price": "350.00",
+        "total": "700.00",
+        "specialRequest": "Extra cheese",
+        "status": "PENDING"
+      },
+      {
+        "id": "orderitem-002-cuid",
+        "productId": "item-003-cuid",
+        "qty": 2,
+        "price": "50.00",
+        "total": "100.00",
+        "specialRequest": null,
+        "status": "PENDING"
+      }
+    ],
+    "subtotal": "800.00",
+    "tax": "40.00",
+    "discount": "0.00",
+    "total": "840.00",
+    "status": "PENDING",
+    "createdAt": "2025-11-12T19:31:00Z"
+  },
+  "message": "Order created successfully"
+}
+```
+
+#### Error Response (400 - branchId missing):
+
+```json
+{
+  "error": "branchId is required"
+}
+```
+
+#### Error Response (400 - branch not found):
+
+```json
+{
+  "error": "Branch not found for tenant"
 }
 ```
 
@@ -1662,44 +1681,54 @@ Audit Log:
 
 ```
 Created:
-- Order { id, tenantId, branchId, tableId, subtotal, tax, discount, total, status: PENDING }
+- Order { id, tenantId, branchId, tableId, tax, discount, total, status: PENDING }
 - OrderItem (multiple) { id, orderId, productId, qty, price, total, specialRequest, status: PENDING }
-- KOT { id, orderId, branchId, items, printed: false }
+- KOT { id, orderId, branchId, items, printed: false } ← Kitchen Order Ticket per branch
 
 Updated:
-- StockItem { qty: qty - order.item.qty } (for each item if inventory tracked)
+- StockItem { qty: qty - order.item.qty } (for each inventory-tracked item)
 
 Audit Log:
 - ORDER_CREATED action recorded
+```
+
+#### Why branchId is Required:
+
+```
+1. Multi-location support: Each branch has different tables/seating
+2. Kitchen Display System (KDS): Kitchen tickets are per-branch
+3. Inventory management: Stock is tracked per branch
+4. Reporting: Sales need to be filtered by branch
+5. Multi-tenant isolation: Ensures data scoping
 ```
 
 ---
 
 ### Route 30: GET /api/v1/orders/:id
 
-**Purpose:** Get order details
+**Purpose:** Get order details with items and invoices
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(orderIdParamSchema)
+**Middleware:** authMiddleware → validateParams(orderIdParamSchema)
 **Authorization:** All authenticated users (of same tenant)
 
 #### URL Parameters:
 
 ```
-- id: Order ID (UUID, required)
+- id: Order ID (CUID, required)
 ```
 
 #### Success Response (200):
 
 ```json
 {
-  "id": "order-001-uuid",
-  "tenantId": "tenant-pizzahub-001-uuid",
-  "branchId": "branch-001-uuid",
-  "tableId": "table-05-uuid",
+  "id": "order-001-cuid",
+  "tenantId": "tenant-pizzahub-001-cuid",
+  "branchId": "branch-001-cuid",
+  "tableId": "table-05-cuid",
   "items": [
     {
-      "id": "orderitem-001-uuid",
-      "productId": "item-001-uuid",
+      "id": "orderitem-001-cuid",
+      "productId": "item-001-cuid",
       "productName": "Margherita Pizza",
       "qty": 2,
       "price": "350.00",
@@ -1708,12 +1737,13 @@ Audit Log:
       "status": "PENDING"
     },
     {
-      "id": "orderitem-002-uuid",
-      "productId": "item-003-uuid",
+      "id": "orderitem-002-cuid",
+      "productId": "item-003-cuid",
       "productName": "Coca Cola",
       "qty": 2,
       "price": "50.00",
       "total": "100.00",
+      "specialRequest": null,
       "status": "PENDING"
     }
   ],
@@ -1723,8 +1753,19 @@ Audit Log:
   "total": "840.00",
   "status": "PENDING",
   "createdBy": {
-    "id": "user-005-uuid",
+    "id": "user-005-cuid",
     "name": "Suresh Waiter"
+  },
+  "invoices": [
+    {
+      "id": "invoice-001-cuid",
+      "status": "PAID",
+      "amount": "840.00"
+    }
+  ],
+  "table": {
+    "id": "table-05-cuid",
+    "name": "Table 5"
   },
   "createdAt": "2025-11-12T19:31:00Z",
   "updatedAt": "2025-11-12T19:31:00Z"

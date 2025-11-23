@@ -6,7 +6,7 @@
 import Joi from "joi";
 
 export const createOrderSchema = Joi.object({
-  branchId: Joi.string().optional(),
+  branchId: Joi.string().required(),
   tableId: Joi.string().optional(),
   items: Joi.array()
     .items(
@@ -14,7 +14,7 @@ export const createOrderSchema = Joi.object({
         productId: Joi.string().required(),
         qty: Joi.number().required().positive().integer(),
         price: Joi.number().required().positive(),
-        specialRequest: Joi.string().optional().max(200),
+        specialRequest: Joi.string().optional().max(200).allow(null),
       })
     )
     .required()
@@ -28,7 +28,7 @@ export const addOrderItemSchema = Joi.object({
   productId: Joi.string().required(),
   qty: Joi.number().required().positive().integer(),
   price: Joi.number().required().positive(),
-  specialRequest: Joi.string().optional().max(200),
+  specialRequest: Joi.string().optional().max(200).allow(null),
 });
 
 export const updateOrderStatusSchema = Joi.object({
@@ -51,9 +51,9 @@ export const updateOrderItemStatusSchema = Joi.object({
 });
 
 export const orderIdParamSchema = Joi.object({
-  id: Joi.string().required()
+  id: Joi.string().required(),
 });
 
 export const itemIdParamSchema = Joi.object({
-  itemId: Joi.string().required()
+  itemId: Joi.string().required(),
 });

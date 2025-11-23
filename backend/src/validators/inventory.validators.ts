@@ -9,6 +9,9 @@ export const createInventoryItemSchema = Joi.object({
   productId: Joi.string().required().messages({
     "any.required": "productId is required",
   }),
+  branchId: Joi.string().required().messages({
+    "any.required": "branchId is required - inventory is branch-scoped",
+  }),
   qty: Joi.number().integer().min(0).required().messages({
     "number.min": "qty cannot be negative",
     "any.required": "qty is required",
@@ -39,11 +42,15 @@ export const itemIdParamSchema = Joi.object({
 });
 
 export const inventoryQuerySchema = Joi.object({
-  branchId: Joi.string().min(1).optional(),
+  branchId: Joi.string().min(1).required().messages({
+    "any.required": "branchId is required - inventory is branch-scoped",
+  }),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(50),
 });
 
 export const lowStockQuerySchema = Joi.object({
-  branchId: Joi.string().min(1).optional(),
+  branchId: Joi.string().min(1).required().messages({
+    "any.required": "branchId is required - inventory is branch-scoped",
+  }),
 });

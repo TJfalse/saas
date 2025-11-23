@@ -13,7 +13,7 @@ import { MovementType } from "@prisma/client";
 
 interface StockItemData {
   tenantId: string;
-  branchId?: string;
+  branchId: string;
   productId: string;
   qty: number;
   minQty?: number;
@@ -21,7 +21,7 @@ interface StockItemData {
 
 interface StockMovementData {
   tenantId: string;
-  branchId?: string;
+  branchId: string;
   productId: string;
   type: MovementType;
   qty: number;
@@ -34,21 +34,18 @@ interface StockMovementData {
  */
 export async function getInventoryItems(
   tenantId: string,
-  branchId?: string,
+  branchId: string,
   page = 1,
   limit = 50
 ) {
   try {
-    if (!tenantId) {
-      throw new Error("Tenant ID is required");
+    if (!tenantId || !branchId) {
+      throw new Error("Tenant ID and branch ID are required");
     }
 
     const skip = (page - 1) * limit;
 
-    const where: any = { tenantId };
-    if (branchId) {
-      where.branchId = branchId;
-    }
+    const where: any = { tenantId, branchId };
 
     const [items, total] = await Promise.all([
       prisma.stockItem.findMany({
@@ -65,7 +62,7 @@ export async function getInventoryItems(
     ]);
 
     logger.info(
-      `Fetched ${items.length} inventory items for tenant ${tenantId}`
+      `Fetched ${items.length} inventory items for tenant ${tenantId}, branch ${branchId}`
     );
 
     return { items, total, page, limit };
@@ -112,8 +109,8 @@ export async function getInventoryItem(itemId: string, tenantId: string) {
 export async function createInventoryItem(data: StockItemData) {
   try {
     // Validate input
-    if (!data.tenantId || !data.productId) {
-      throw new Error("Tenant ID and product ID are required");
+    if (!data.tenantId || !data.productId || !data.branchId) {
+      throw new Error("Tenant ID, branch ID, and product ID are required");
     }
 
     if (data.qty < 0) {
@@ -129,6 +126,18 @@ export async function createInventoryItem(data: StockItemData) {
       throw new Error("Tenant not found");
     }
 
+    // Verify branch exists and belongs to tenant
+    const branch = await prisma.branch.findFirst({
+      where: {
+        id: data.branchId,
+        tenantId: data.tenantId,
+      },
+    });
+
+    if (!branch) {
+      throw new Error("Branch not found for this tenant");
+    }
+
     // Verify product exists
     const product = await prisma.product.findFirst({
       where: {
@@ -141,16 +150,19 @@ export async function createInventoryItem(data: StockItemData) {
       throw new Error("Product not found or does not belong to this tenant");
     }
 
-    // Check if stock item already exists
+    // Check if stock item already exists for this branch
     const existing = await prisma.stockItem.findFirst({
       where: {
         tenantId: data.tenantId,
+        branchId: data.branchId,
         productId: data.productId,
       },
     });
 
     if (existing) {
-      throw new Error("Stock item already exists for this product");
+      throw new Error(
+        "Stock item already exists for this product in this branch"
+      );
     }
 
     // Create stock item
@@ -175,7 +187,9 @@ export async function createInventoryItem(data: StockItemData) {
       },
     });
 
-    logger.info(`Stock item created: ${item.id} for product ${data.productId}`);
+    logger.info(
+      `Stock item created: ${item.id} for product ${data.productId} in branch ${data.branchId}`
+    );
 
     return item;
   } catch (error) {
@@ -314,17 +328,17 @@ export async function getLowStockItems(tenantId: string, branchId?: string) {
  */
 export async function getLowStockItemsOptimized(
   tenantId: string,
-  branchId?: string
+  branchId: string
 ) {
   try {
-    if (!tenantId) {
-      throw new Error("Tenant ID is required");
+    if (!tenantId || !branchId) {
+      throw new Error("Tenant ID and branch ID are required");
     }
 
     const query = `
       SELECT si.* FROM "StockItem" si
       WHERE si."tenantId" = $1
-      ${branchId ? 'AND si."branchId" = $2' : ""}
+      AND si."branchId" = $2
       AND si.qty < si."minQty"
       ORDER BY si.qty ASC
     `;
@@ -334,7 +348,7 @@ export async function getLowStockItemsOptimized(
     logger.info(
       `Fetched ${
         (items as any[]).length
-      } low stock items for tenant ${tenantId}`
+      } low stock items for tenant ${tenantId}, branch ${branchId}`
     );
 
     return items;
@@ -532,12 +546,19 @@ export async function getStockSummary(tenantId: string, branchId?: string) {
  */
 export async function adjustStock(
   tenantId: string,
+  branchId: string,
   productId: string,
   adjustment: number,
   reason: string
 ) {
   try {
-    if (!tenantId || !productId || adjustment === undefined || !reason) {
+    if (
+      !tenantId ||
+      !branchId ||
+      !productId ||
+      adjustment === undefined ||
+      !reason
+    ) {
       throw new Error("All parameters are required");
     }
 
@@ -546,6 +567,7 @@ export async function adjustStock(
 
     return recordStockMovement({
       tenantId,
+      branchId,
       productId,
       type: movementType,
       qty,

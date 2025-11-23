@@ -57,7 +57,13 @@ const StaffPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tenantId || !formData.email || !formData.name || !formData.role || !formData.branchId) {
+    if (
+      !tenantId ||
+      !formData.email ||
+      !formData.name ||
+      !formData.role ||
+      !formData.branchId
+    ) {
       toast.error("Fill all required fields (including branchId)");
       return;
     }

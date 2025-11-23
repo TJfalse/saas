@@ -25,9 +25,16 @@ export const getInventoryItems = async (
   try {
     const { tenantId } = req.params;
     const userTenantId = req.user?.tenantId;
-    const branchId = req.query.branchId as string | undefined;
+    const branchId = req.query.branchId as string;
     const page = req.query.page ? parseInt(req.query.page) : 1;
     const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+
+    if (!branchId) {
+      return res.status(400).json({
+        error:
+          "branchId query parameter is required - inventory is branch-scoped",
+      });
+    }
 
     // Validate tenant access
     validateTenantAccess(userTenantId, tenantId);
@@ -131,7 +138,14 @@ export const getLowStockItems = async (
   try {
     const { tenantId } = req.params;
     const userTenantId = req.user?.tenantId;
-    const branchId = req.query.branchId as string | undefined;
+    const branchId = req.query.branchId as string;
+
+    if (!branchId) {
+      return res.status(400).json({
+        error:
+          "branchId query parameter is required - inventory is branch-scoped",
+      });
+    }
 
     // Validate tenant access
     validateTenantAccess(userTenantId, tenantId);

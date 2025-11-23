@@ -868,23 +868,23 @@ Audit Log:
 
 ## (5 Routes - Stock Management)
 
-### Route 15: GET /api/v1/inventory/:tenantId
+### Route 15: GET /api/v1/inventory/:tenantId/:branchId
 
 **Purpose:** Get all inventory items
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema) → validateQuery(inventoryQuerySchema)
+**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema & branchIdParamSchema) → validateQuery(inventoryQuerySchema)
 **Authorization:** MANAGER, ACCOUNTANT, OWNER
 
 #### URL Parameters:
 
 ```
 - tenantId: UUID (required)
+- branchId: UUID (required) - inventory is branch-scoped
 ```
 
 #### Query Parameters (Optional):
 
 ```
-- branchId: UUID
 - page: positive integer (default: 1)
 - limit: positive integer, 1-100 (default: 50)
 ```
@@ -897,6 +897,7 @@ Audit Log:
     {
       "id": "stock-001-uuid",
       "tenantId": "tenant-pizzahub-001-uuid",
+      "branchId": "branch-001-uuid",
       "productId": "product-001-uuid",
       "productName": "Margherita Pizza",
       "qty": 98,
@@ -907,6 +908,7 @@ Audit Log:
     {
       "id": "stock-002-uuid",
       "tenantId": "tenant-pizzahub-001-uuid",
+      "branchId": "branch-001-uuid",
       "productId": "product-002-uuid",
       "productName": "Paneer Pizza",
       "qty": 130,
@@ -917,6 +919,7 @@ Audit Log:
     {
       "id": "stock-003-uuid",
       "tenantId": "tenant-pizzahub-001-uuid",
+      "branchId": "branch-001-uuid",
       "productId": "product-003-uuid",
       "productName": "Coca Cola",
       "qty": 198,
@@ -933,23 +936,25 @@ Audit Log:
 
 ---
 
-### Route 16: GET /api/v1/inventory/:tenantId/low-stock
+### Route 16: GET /api/v1/inventory/:tenantId/:branchId/low-stock
 
 **Purpose:** Get low stock items (qty <= minQty)
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema) → validateQuery(lowStockQuerySchema)
+**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema & branchIdParamSchema) → validateQuery(lowStockQuerySchema)
 **Authorization:** MANAGER, ACCOUNTANT, OWNER
 
 #### URL Parameters:
 
 ```
 - tenantId: UUID (required)
+- branchId: UUID (required) - inventory is branch-scoped
 ```
 
 #### Query Parameters (Optional):
 
 ```
-- branchId: UUID
+- page: positive integer (default: 1)
+- limit: positive integer, 1-100 (default: 50)
 ```
 
 #### Success Response (200):
@@ -960,6 +965,7 @@ Audit Log:
     {
       "id": "stock-004-uuid",
       "tenantId": "tenant-pizzahub-001-uuid",
+      "branchId": "branch-001-uuid",
       "productId": "product-004-uuid",
       "productName": "Garlic Bread",
       "qty": 8,
@@ -994,6 +1000,7 @@ Audit Log:
 ```json
 {
   "productId": "product-001-uuid",
+  "branchId": "branch-001-uuid",
   "qty": 100,
   "minQty": 20
 }
@@ -1003,6 +1010,7 @@ Audit Log:
 
 ```
 - productId: UUID (required)
+- branchId: UUID (required) - inventory is branch-scoped
 - qty: integer, minimum 0 (required)
 - minQty: integer, minimum 0 (default: 10)
 ```
@@ -1013,6 +1021,7 @@ Audit Log:
 {
   "id": "stock-001-uuid",
   "tenantId": "tenant-pizzahub-001-uuid",
+  "branchId": "branch-001-uuid",
   "productId": "product-001-uuid",
   "productName": "Margherita Pizza",
   "qty": 100,

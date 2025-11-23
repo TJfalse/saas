@@ -22,7 +22,7 @@ interface CreateStaffData {
     | "KITCHEN"
     | "ACCOUNTANT"
     | "STAFF";
-  branchId?: string;
+  branchId: string;
 }
 
 class StaffService {
@@ -68,8 +68,13 @@ class StaffService {
   static async createStaff(tenantId: string, staffData: CreateStaffData) {
     try {
       // Validate input
-      if (!staffData.email || !staffData.password || !staffData.role) {
-        throw new Error("Email, password, and role are required");
+      if (
+        !staffData.email ||
+        !staffData.password ||
+        !staffData.role ||
+        !staffData.branchId
+      ) {
+        throw new Error("Email, password, role, and branchId are required");
       }
 
       // Check if email already exists for this tenant
@@ -84,18 +89,16 @@ class StaffService {
         throw new Error("Email already registered for this tenant");
       }
 
-      // Verify branch exists if provided
-      if (staffData.branchId) {
-        const branch = await prisma.branch.findFirst({
-          where: {
-            id: staffData.branchId,
-            tenantId,
-          },
-        });
+      // Verify branch exists and belongs to tenant
+      const branch = await prisma.branch.findFirst({
+        where: {
+          id: staffData.branchId,
+          tenantId,
+        },
+      });
 
-        if (!branch) {
-          throw new Error("Branch not found for tenant");
-        }
+      if (!branch) {
+        throw new Error("Branch not found for tenant");
       }
 
       // Hash password
@@ -105,7 +108,7 @@ class StaffService {
       const staff = await prisma.user.create({
         data: {
           tenantId,
-          branchId: staffData.branchId || null,
+          branchId: staffData.branchId,
           email: staffData.email,
           name: staffData.name || staffData.email.split("@")[0],
           password: passwordHash,

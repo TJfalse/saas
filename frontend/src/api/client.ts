@@ -192,27 +192,72 @@ class ApiClient {
 
   // Generic methods for all endpoints
   async get<T>(url: string, config?: any): Promise<T> {
-    const { data } = await this.client.get<T>(url, config);
+    const { data } = await this.client.get(url, config);
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 
   async post<T>(url: string, payload?: any, config?: any): Promise<T> {
-    const { data } = await this.client.post<T>(url, payload, config);
+    const { data } = await this.client.post(url, payload, config);
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 
   async put<T>(url: string, payload?: any, config?: any): Promise<T> {
-    const { data } = await this.client.put<T>(url, payload, config);
+    const { data } = await this.client.put(url, payload, config);
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 
   async patch<T>(url: string, payload?: any, config?: any): Promise<T> {
-    const { data } = await this.client.patch<T>(url, payload, config);
+    const { data } = await this.client.patch(url, payload, config);
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 
   async delete<T>(url: string, config?: any): Promise<T> {
-    const { data } = await this.client.delete<T>(url, config);
+    const { data } = await this.client.delete(url, config);
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 
@@ -221,12 +266,21 @@ class ApiClient {
     formData: FormData,
     config?: any
   ): Promise<T> {
-    const { data } = await this.client.post<T>(url, formData, {
+    const { data } = await this.client.post(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
       ...config,
     });
+    // Handle wrapped response format { success, message, data }
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      "data" in data
+    ) {
+      return data.data;
+    }
     return data;
   }
 

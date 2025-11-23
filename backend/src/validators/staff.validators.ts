@@ -30,7 +30,10 @@ export const createStaffSchema = Joi.object({
       "any.only":
         "role must be one of: OWNER, ADMIN, MANAGER, WAITER, KITCHEN, ACCOUNTANT, STAFF",
     }),
-  branchId: Joi.string().optional(),
+  branchId: Joi.string().required().messages({
+    "any.required":
+      "branchId is required - staff must be assigned to a specific branch",
+  }),
 });
 
 export const updateStaffSchema = Joi.object({
@@ -46,7 +49,9 @@ export const updateStaffSchema = Joi.object({
       "ACCOUNTANT",
       "STAFF"
     ),
-  branchId: Joi.string().min(1).optional(),
+  branchId: Joi.string().required().messages({
+    "any.required": "branchId is required for staff updates",
+  }),
   password: Joi.string().optional().min(8).max(100),
 });
 

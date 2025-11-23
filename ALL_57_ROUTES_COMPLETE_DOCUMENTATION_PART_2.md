@@ -493,7 +493,7 @@ INV-003,950.00,48,50,948.00,PENDING,UPI,2025-11-02 11:00:00
 - name: string (optional)
 - password: string, minimum 8 characters (required)
 - role: enum [OWNER, ADMIN, MANAGER, WAITER, KITCHEN, ACCOUNTANT, STAFF] (required)
-- branchId: UUID (optional)
+- branchId: UUID (required) - staff must be assigned to a specific branch
 ```
 
 #### Success Response (201):
@@ -601,9 +601,9 @@ Audit Log:
 - name: string (optional)
 - email: valid email (optional)
 - role: enum [OWNER, ADMIN, MANAGER, WAITER, KITCHEN, ACCOUNTANT, STAFF] (optional)
-- branchId: UUID (optional)
+- branchId: UUID (required) - cannot modify staff's branch assignment
 - password: string, minimum 8 characters (optional)
-- NOTE: At least one field must be provided
+- NOTE: At least one field other than branchId must be provided for update
 ```
 
 #### Success Response (200):

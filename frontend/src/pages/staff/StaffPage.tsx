@@ -57,8 +57,8 @@ const StaffPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tenantId || !formData.email || !formData.name || !formData.role) {
-      toast.error("Fill all required fields");
+    if (!tenantId || !formData.email || !formData.name || !formData.role || !formData.branchId) {
+      toast.error("Fill all required fields (including branchId)");
       return;
     }
 
@@ -233,7 +233,7 @@ const StaffPage: React.FC = () => {
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Branch ID
+                Branch ID *
               </label>
               <input
                 type="text"
@@ -241,7 +241,7 @@ const StaffPage: React.FC = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, branchId: e.target.value })
                 }
-                placeholder="Branch ID (optional)"
+                placeholder="Branch ID (required)"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>

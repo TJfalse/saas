@@ -21,8 +21,29 @@ class BookingController {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const booking = await BookingService.create({ ...payload, tenantId });
-      res.status(201).json(booking);
+      const booking = await BookingService.createBooking({
+        ...payload,
+        tenantId,
+      });
+      res.status(201).json({
+        success: true,
+        data: {
+          id: booking.id,
+          tenantId: booking.tenantId,
+          branchId: booking.branchId,
+          tableId: booking.tableId,
+          customerName: booking.customerName,
+          customerPhone: booking.customerPhone,
+          partySize: booking.partySize,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          deposit: booking.deposit ? booking.deposit.toString() : null,
+          notes: booking.notes,
+          status: booking.status,
+          createdAt: booking.createdAt,
+        },
+        message: "Booking created successfully",
+      });
     } catch (err) {
       next(err);
     }

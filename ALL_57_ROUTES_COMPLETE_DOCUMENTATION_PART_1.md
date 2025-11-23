@@ -497,20 +497,21 @@ Audit Log:
 
 **Purpose:** Create table booking
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateRequest(createBookingSchema)
+**Middleware:** authMiddleware → validateRequest(createBookingSchema)
 **Authorization:** WAITER, MANAGER, OWNER
+**Important:** branchId is REQUIRED (bookings are for specific branch locations)
 
 #### Request Body:
 
 ```json
 {
-  "branchId": "branch-001-uuid",
-  "tableId": "table-05-uuid",
+  "branchId": "branch-001-cuid",
+  "tableId": "table-08-cuid",
   "customerName": "Rajesh Singh",
   "customerPhone": "9876543210",
   "partySize": 4,
-  "startTime": "2025-11-12T20:00:00Z",
-  "endTime": "2025-11-12T21:30:00Z",
+  "startTime": "2025-11-13T20:00:00Z",
+  "endTime": "2025-11-13T21:30:00Z",
   "deposit": 500,
   "notes": "Window side table preferred"
 }
@@ -519,13 +520,13 @@ Audit Log:
 #### Request Validation Rules:
 
 ```
-- branchId: UUID (required)
-- tableId: UUID (optional)
+- branchId: CUID string (REQUIRED) ← Bookings for specific branch location
+- tableId: CUID string (optional)
 - customerName: string, 2-100 characters (required)
 - customerPhone: string (optional)
 - partySize: positive integer (required)
 - startTime: ISO date (required)
-- endTime: ISO date (required)
+- endTime: ISO date (required) - must be after startTime
 - deposit: number, minimum 0 (optional)
 - notes: string (optional)
 ```
@@ -534,20 +535,47 @@ Audit Log:
 
 ```json
 {
-  "id": "booking-001-uuid",
-  "tenantId": "tenant-pizzahub-001-uuid",
-  "branchId": "branch-001-uuid",
-  "tableId": "table-05-uuid",
-  "customerName": "Rajesh Singh",
-  "customerPhone": "9876543210",
-  "partySize": 4,
-  "startTime": "2025-11-12T20:00:00Z",
-  "endTime": "2025-11-12T21:30:00Z",
-  "deposit": "500.00",
-  "notes": "Window side table preferred",
-  "status": "CONFIRMED",
-  "createdAt": "2025-11-12T14:00:00Z",
-  "updatedAt": "2025-11-12T14:00:00Z"
+  "success": true,
+  "data": {
+    "id": "booking-001-cuid",
+    "tenantId": "tenant-pizzahub-001-cuid",
+    "branchId": "branch-001-cuid",
+    "tableId": "table-08-cuid",
+    "customerName": "Rajesh Singh",
+    "customerPhone": "9876543210",
+    "partySize": 4,
+    "startTime": "2025-11-13T20:00:00Z",
+    "endTime": "2025-11-13T21:30:00Z",
+    "deposit": "500.00",
+    "notes": "Window side table preferred",
+    "status": "PENDING",
+    "createdAt": "2025-11-13T10:30:00Z"
+  },
+  "message": "Booking created successfully"
+}
+```
+
+#### Error Response (400 - branchId missing):
+
+```json
+{
+  "error": "branchId is required"
+}
+```
+
+#### Error Response (400 - table not available):
+
+```json
+{
+  "error": "Table not available for this time slot"
+}
+```
+
+#### Error Response (400 - invalid time):
+
+```json
+{
+  "error": "End time must be after start time"
 }
 ```
 
@@ -555,10 +583,20 @@ Audit Log:
 
 ```
 Created:
-- Booking { id, tenantId, branchId, tableId, customerName, customerPhone, partySize, startTime, endTime, deposit, notes, status: CONFIRMED }
+- Booking { id, tenantId, branchId, tableId, customerName, customerPhone, partySize, startTime, endTime, deposit, notes, status: PENDING }
 
 Audit Log:
 - BOOKING_CREATED action recorded
+```
+
+#### Why branchId is Required:
+
+```
+1. Branch-specific reservations: Each branch has different table inventory
+2. Multi-location support: Different locations have different seating arrangements
+3. Reservation system per-branch: Avoid double-booking across locations
+4. Data scoping: Ensure bookings are isolated by branch
+5. Operational separation: Each location manages its own reservations
 ```
 
 ---
@@ -567,13 +605,13 @@ Audit Log:
 
 **Purpose:** Get all bookings for a branch
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(branchIdParamSchema)
-**Authorization:** Tenant users
+**Middleware:** authMiddleware → validateParams(branchIdParamSchema)
+**Authorization:** Tenant users (service verifies branch belongs to user's tenant)
 
 #### URL Parameters:
 
 ```
-- branchId: UUID (required)
+- branchId: CUID (required)
 ```
 
 #### Query Parameters (Optional):
@@ -592,37 +630,45 @@ Audit Log:
 {
   "bookings": [
     {
-      "id": "booking-001-uuid",
-      "tenantId": "tenant-pizzahub-001-uuid",
-      "branchId": "branch-001-uuid",
-      "tableId": "table-05-uuid",
+      "id": "booking-001-cuid",
+      "tenantId": "tenant-pizzahub-001-cuid",
+      "branchId": "branch-001-cuid",
+      "tableId": "table-05-cuid",
       "customerName": "Rajesh Singh",
       "customerPhone": "9876543210",
       "partySize": 4,
-      "startTime": "2025-11-12T20:00:00Z",
-      "endTime": "2025-11-12T21:30:00Z",
+      "startTime": "2025-11-13T20:00:00Z",
+      "endTime": "2025-11-13T21:30:00Z",
       "deposit": "500.00",
       "status": "CONFIRMED",
-      "createdAt": "2025-11-12T14:00:00Z"
+      "createdAt": "2025-11-13T10:30:00Z"
     },
     {
-      "id": "booking-002-uuid",
-      "tenantId": "tenant-pizzahub-001-uuid",
-      "branchId": "branch-001-uuid",
-      "tableId": "table-08-uuid",
+      "id": "booking-002-cuid",
+      "tenantId": "tenant-pizzahub-001-cuid",
+      "branchId": "branch-001-cuid",
+      "tableId": "table-08-cuid",
       "customerName": "Priya Sharma",
       "customerPhone": "9123456789",
       "partySize": 2,
-      "startTime": "2025-11-12T19:00:00Z",
-      "endTime": "2025-11-12T20:30:00Z",
+      "startTime": "2025-11-13T19:00:00Z",
+      "endTime": "2025-11-13T20:30:00Z",
       "deposit": "0.00",
       "status": "PENDING",
-      "createdAt": "2025-11-12T13:30:00Z"
+      "createdAt": "2025-11-13T09:30:00Z"
     }
   ],
   "total": 2,
   "page": 1,
   "limit": 50
+}
+```
+
+#### Error Response (401):
+
+```json
+{
+  "error": "Unauthorized"
 }
 ```
 

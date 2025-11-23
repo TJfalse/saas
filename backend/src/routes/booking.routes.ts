@@ -1,7 +1,6 @@
 import { Router } from "express";
 import BookingController from "../controllers/booking.controller";
 import authMiddleware from "../middlewares/auth.middleware";
-import tenantMiddleware from "../middlewares/tenant.middleware";
 import {
   validateRequest,
   validateParams,
@@ -13,15 +12,18 @@ import {
 
 const router = Router();
 
-// Apply auth and tenant middleware to all booking routes
+// Apply auth middleware to all booking routes
 router.use(authMiddleware);
-router.use(tenantMiddleware);
 
+// POST / doesn't need tenantMiddleware (no tenantId in URL)
 router.post(
   "/",
   validateRequest(createBookingSchema),
   BookingController.createBooking
 );
+
+// GET /branch/:branchId doesn't need tenantMiddleware (has branchId, not tenantId)
+// Service will verify branch belongs to user's tenant
 router.get(
   "/branch/:branchId",
   validateParams(branchIdParamSchema),

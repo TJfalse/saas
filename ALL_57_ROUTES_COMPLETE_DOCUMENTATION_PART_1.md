@@ -868,115 +868,176 @@ Audit Log:
 
 ## (5 Routes - Stock Management)
 
-### Route 15: GET /api/v1/inventory/:tenantId/:branchId
+### Route 15: GET /api/v1/inventory/:tenantId
 
 **Purpose:** Get all inventory items
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema & branchIdParamSchema) → validateQuery(inventoryQuerySchema)
+**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema) → validateQuery(inventoryQuerySchema)
 **Authorization:** MANAGER, ACCOUNTANT, OWNER
 
 #### URL Parameters:
 
 ```
-- tenantId: UUID (required)
-- branchId: UUID (required) - inventory is branch-scoped
+- tenantId: UUID (required) - extracted from JWT token and verified by tenantMiddleware
 ```
 
-#### Query Parameters (Optional):
+#### Query Parameters (Required):
 
 ```
+- branchId: UUID (required) - inventory is branch-scoped, passed naturally as query param
 - page: positive integer (default: 1)
 - limit: positive integer, 1-100 (default: 50)
+```
+
+#### Request Flow:
+
+```
+1. User logs in → receives JWT with tenantId & branchId
+2. Makes GET request with ?branchId=<uuid>
+3. authMiddleware validates JWT token
+4. tenantMiddleware verifies tenantId from params matches user's tenantId from token
+5. validateQuery ensures branchId is provided
+6. Controller receives branchId naturally from req.query.branchId
+7. Service strictly requires both tenantId & branchId for database query
 ```
 
 #### Success Response (200):
 
 ```json
 {
-  "items": [
-    {
-      "id": "stock-001-uuid",
-      "tenantId": "tenant-pizzahub-001-uuid",
-      "branchId": "branch-001-uuid",
-      "productId": "product-001-uuid",
-      "productName": "Margherita Pizza",
-      "qty": 98,
-      "minQty": 20,
-      "status": "OK",
-      "lastUpdated": "2025-11-12T10:00:00Z"
-    },
-    {
-      "id": "stock-002-uuid",
-      "tenantId": "tenant-pizzahub-001-uuid",
-      "branchId": "branch-001-uuid",
-      "productId": "product-002-uuid",
-      "productName": "Paneer Pizza",
-      "qty": 130,
-      "minQty": 15,
-      "status": "OK",
-      "lastUpdated": "2025-11-12T09:30:00Z"
-    },
-    {
-      "id": "stock-003-uuid",
-      "tenantId": "tenant-pizzahub-001-uuid",
-      "branchId": "branch-001-uuid",
-      "productId": "product-003-uuid",
-      "productName": "Coca Cola",
-      "qty": 198,
-      "minQty": 50,
-      "status": "OK",
-      "lastUpdated": "2025-11-11T15:00:00Z"
-    }
-  ],
-  "total": 3,
-  "page": 1,
-  "limit": 50
+  "success": true,
+  "message": "Inventory items fetched",
+  "data": {
+    "items": [
+      {
+        "id": "stock-001-uuid",
+        "tenantId": "tenant-pizzahub-001-uuid",
+        "branchId": "branch-001-uuid",
+        "productId": "product-001-uuid",
+        "qty": 98,
+        "minQty": 20,
+        "createdAt": "2025-11-12T09:00:00Z",
+        "updatedAt": "2025-11-12T10:00:00Z",
+        "product": {
+          "id": "product-001-uuid",
+          "name": "Margherita Pizza",
+          "sku": "MP-001",
+          "tenantId": "tenant-pizzahub-001-uuid"
+        }
+      },
+      {
+        "id": "stock-002-uuid",
+        "tenantId": "tenant-pizzahub-001-uuid",
+        "branchId": "branch-001-uuid",
+        "productId": "product-002-uuid",
+        "qty": 130,
+        "minQty": 15,
+        "createdAt": "2025-11-12T08:00:00Z",
+        "updatedAt": "2025-11-12T09:30:00Z",
+        "product": {
+          "id": "product-002-uuid",
+          "name": "Paneer Pizza",
+          "sku": "PP-001",
+          "tenantId": "tenant-pizzahub-001-uuid"
+        }
+      },
+      {
+        "id": "stock-003-uuid",
+        "tenantId": "tenant-pizzahub-001-uuid",
+        "branchId": "branch-001-uuid",
+        "productId": "product-003-uuid",
+        "qty": 198,
+        "minQty": 50,
+        "createdAt": "2025-11-11T14:00:00Z",
+        "updatedAt": "2025-11-11T15:00:00Z",
+        "product": {
+          "id": "product-003-uuid",
+          "name": "Coca Cola",
+          "sku": "CC-001",
+          "tenantId": "tenant-pizzahub-001-uuid"
+        }
+      }
+    ],
+    "total": 3,
+    "page": 1,
+    "limit": 50
+  }
 }
 ```
 
 ---
 
-### Route 16: GET /api/v1/inventory/:tenantId/:branchId/low-stock
+### Route 16: GET /api/v1/inventory/:tenantId/low-stock
 
-**Purpose:** Get low stock items (qty <= minQty)
+**Purpose:** Get low stock items (qty < minQty)
 **Authentication:** Required (JWT Bearer Token)
-**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema & branchIdParamSchema) → validateQuery(lowStockQuerySchema)
+**Middleware:** authMiddleware → tenantMiddleware → validateParams(tenantIdParamSchema) → validateQuery(lowStockQuerySchema)
 **Authorization:** MANAGER, ACCOUNTANT, OWNER
 
 #### URL Parameters:
 
 ```
-- tenantId: UUID (required)
-- branchId: UUID (required) - inventory is branch-scoped
+- tenantId: UUID (required) - extracted from JWT token and verified by tenantMiddleware
 ```
 
-#### Query Parameters (Optional):
+#### Query Parameters (Required):
 
 ```
-- page: positive integer (default: 1)
-- limit: positive integer, 1-100 (default: 50)
+- branchId: UUID (required) - inventory is branch-scoped, passed naturally as query param
+```
+
+#### Request Flow:
+
+```
+1. User logs in → receives JWT with tenantId & branchId
+2. Makes GET request with ?branchId=<uuid>
+3. authMiddleware validates JWT token
+4. tenantMiddleware verifies tenantId from params matches user's tenantId from token
+5. validateQuery ensures branchId is provided
+6. Controller receives branchId naturally from req.query.branchId
+7. Service uses getLowStockItemsOptimized() which strictly requires both tenantId & branchId
 ```
 
 #### Success Response (200):
 
 ```json
 {
-  "lowStockItems": [
+  "success": true,
+  "message": "Low stock items fetched",
+  "data": [
     {
       "id": "stock-004-uuid",
       "tenantId": "tenant-pizzahub-001-uuid",
       "branchId": "branch-001-uuid",
       "productId": "product-004-uuid",
-      "productName": "Garlic Bread",
       "qty": 8,
       "minQty": 10,
-      "variance": -2,
-      "action": "URGENT_REORDER",
-      "lastUpdated": "2025-11-12T08:00:00Z"
+      "createdAt": "2025-11-10T08:00:00Z",
+      "updatedAt": "2025-11-12T08:00:00Z",
+      "product": {
+        "id": "product-004-uuid",
+        "name": "Garlic Bread",
+        "sku": "GB-001",
+        "tenantId": "tenant-pizzahub-001-uuid"
+      }
+    },
+    {
+      "id": "stock-005-uuid",
+      "tenantId": "tenant-pizzahub-001-uuid",
+      "branchId": "branch-001-uuid",
+      "productId": "product-005-uuid",
+      "qty": 5,
+      "minQty": 20,
+      "createdAt": "2025-11-09T10:00:00Z",
+      "updatedAt": "2025-11-12T09:00:00Z",
+      "product": {
+        "id": "product-005-uuid",
+        "name": "Mozzarella Cheese",
+        "sku": "MC-001",
+        "tenantId": "tenant-pizzahub-001-uuid"
+      }
     }
-  ],
-  "totalLowStockItems": 1,
-  "alertLevel": "WARNING"
+  ]
 }
 ```
 
@@ -992,7 +1053,7 @@ Audit Log:
 #### URL Parameters:
 
 ```
-- tenantId: UUID (required)
+- tenantId: UUID (required) - extracted from JWT token and verified by tenantMiddleware
 ```
 
 #### Request Body:
@@ -1009,26 +1070,51 @@ Audit Log:
 #### Request Validation Rules:
 
 ```
-- productId: UUID (required)
-- branchId: UUID (required) - inventory is branch-scoped
+- productId: UUID (required) - must exist in Products table for this tenant
+- branchId: UUID (required) - inventory is branch-scoped, passed in request body
 - qty: integer, minimum 0 (required)
 - minQty: integer, minimum 0 (default: 10)
+```
+
+#### Request Flow:
+
+```
+1. User logs in → receives JWT with tenantId & branchId
+2. Makes POST request with branchId in request body
+3. authMiddleware validates JWT token
+4. tenantMiddleware verifies tenantId from params matches user's tenantId from token
+5. validateRequest schema ensures branchId is provided in body
+6. Controller receives branchId naturally from req.body.branchId
+7. Service verifies:
+   - Tenant exists
+   - Branch exists and belongs to tenant
+   - Product exists and belongs to tenant
+   - Stock item doesn't already exist for this product in this branch
+8. Creates StockItem with both tenantId and branchId (required fields)
 ```
 
 #### Success Response (201):
 
 ```json
 {
-  "id": "stock-001-uuid",
-  "tenantId": "tenant-pizzahub-001-uuid",
-  "branchId": "branch-001-uuid",
-  "productId": "product-001-uuid",
-  "productName": "Margherita Pizza",
-  "qty": 100,
-  "minQty": 20,
-  "status": "OK",
-  "createdAt": "2025-11-12T10:00:00Z",
-  "updatedAt": "2025-11-12T10:00:00Z"
+  "success": true,
+  "message": "Inventory item created",
+  "data": {
+    "id": "stock-001-uuid",
+    "tenantId": "tenant-pizzahub-001-uuid",
+    "branchId": "branch-001-uuid",
+    "productId": "product-001-uuid",
+    "qty": 100,
+    "minQty": 20,
+    "createdAt": "2025-11-12T10:00:00Z",
+    "updatedAt": "2025-11-12T10:00:00Z",
+    "product": {
+      "id": "product-001-uuid",
+      "name": "Margherita Pizza",
+      "sku": "MP-001",
+      "tenantId": "tenant-pizzahub-001-uuid"
+    }
+  }
 }
 ```
 
@@ -1036,10 +1122,25 @@ Audit Log:
 
 ```
 Created:
-- StockItem { id, tenantId, productId, qty, minQty }
+- StockItem { id, tenantId, branchId, productId, qty, minQty, createdAt, updatedAt }
+
+Verification Performed:
+- Tenant exists and is valid
+- Branch exists and belongs to tenant
+- Product exists and belongs to tenant
+- Stock item doesn't already exist for this product in this branch
 
 Audit Log:
-- STOCK_CREATED action recorded
+- CREATE action recorded with new item values
+```
+
+#### Error Response (400):
+
+```json
+{
+  "success": false,
+  "message": "Stock item already exists for this product in this branch"
+}
 ```
 
 ---
@@ -1054,7 +1155,7 @@ Audit Log:
 #### URL Parameters:
 
 ```
-- itemId: UUID (required)
+- itemId: UUID (required) - identifies the specific stock item to update
 ```
 
 #### Request Body (at least one field required):
@@ -1074,20 +1175,52 @@ Audit Log:
 - NOTE: At least one field must be provided
 ```
 
+#### Request Flow:
+
+```
+1. User logs in → receives JWT with tenantId
+2. Makes PUT request to /:itemId with qty/minQty in body
+3. authMiddleware validates JWT token
+4. tenantMiddleware verifies tenantId context (used for authorization)
+5. validateRequest schema ensures at least one update field is provided
+6. Controller receives userTenantId from req.user?.tenantId (from JWT)
+7. Service performs update with userTenantId (branchId NOT needed for update - identified by itemId)
+8. Service verifies item belongs to tenant before updating
+9. Creates audit log recording the change
+```
+
+#### Notes on Branch ID:
+
+```
+- branchId is NOT required for this route because:
+  * itemId uniquely identifies the stock item across the entire tenant
+  * The item record already contains branchId in the database
+  * User's tenantId from JWT token is sufficient for authorization
+  * Service validates user's tenantId matches item's tenantId
+```
+
 #### Success Response (200):
 
 ```json
 {
-  "id": "stock-002-uuid",
-  "tenantId": "tenant-pizzahub-001-uuid",
-  "productId": "product-002-uuid",
-  "productName": "Paneer Pizza",
-  "qty": 85,
-  "minQty": 15,
-  "status": "OK",
-  "previousQty": 80,
-  "qtyChanged": 5,
-  "updatedAt": "2025-11-12T11:00:00Z"
+  "success": true,
+  "message": "Inventory item updated",
+  "data": {
+    "id": "stock-002-uuid",
+    "tenantId": "tenant-pizzahub-001-uuid",
+    "branchId": "branch-001-uuid",
+    "productId": "product-002-uuid",
+    "qty": 85,
+    "minQty": 15,
+    "createdAt": "2025-11-10T10:00:00Z",
+    "updatedAt": "2025-11-12T11:00:00Z",
+    "product": {
+      "id": "product-002-uuid",
+      "name": "Paneer Pizza",
+      "sku": "PP-001",
+      "tenantId": "tenant-pizzahub-001-uuid"
+    }
+  }
 }
 ```
 
@@ -1097,11 +1230,31 @@ Audit Log:
 Updated:
 - StockItem { qty, minQty, updatedAt: now() }
 
-Created:
-- StockMovement { type: UPDATE, oldQty, newQty, difference }
+Verification Performed:
+- Item exists
+- Item's tenantId matches user's tenantId from JWT
+- Updated qty is not negative
 
 Audit Log:
-- STOCK_UPDATED action recorded
+- UPDATE action recorded with oldValues and newValues
+```
+
+#### Error Response (400):
+
+```json
+{
+  "success": false,
+  "message": "Quantity cannot be negative"
+}
+```
+
+#### Error Response (401):
+
+```json
+{
+  "success": false,
+  "message": "Unauthorized"
+}
 ```
 
 ---
@@ -1116,25 +1269,68 @@ Audit Log:
 #### URL Parameters:
 
 ```
-- itemId: UUID (required)
+- itemId: UUID (required) - identifies the specific stock item to delete
+```
+
+#### Request Flow:
+
+```
+1. User logs in → receives JWT with tenantId
+2. Makes DELETE request to /:itemId
+3. authMiddleware validates JWT token
+4. tenantMiddleware verifies tenantId context
+5. Controller receives userTenantId from req.user?.tenantId (from JWT)
+6. Service performs deletion with userTenantId
+7. Service verifies:
+   - Item exists
+   - Item belongs to user's tenant
+   - qty is 0 (cannot delete item with remaining quantity)
+8. Deletes the record and creates audit log
+```
+
+#### Notes on Branch ID:
+
+```
+- branchId is NOT required for this route because:
+  * itemId uniquely identifies the stock item
+  * The item record already contains branchId in the database
+  * User's tenantId from JWT token is sufficient for authorization
+  * Authorization check (OWNER only) is done at user role level
 ```
 
 #### Success Response (200):
 
 ```json
 {
-  "message": "Inventory item deleted successfully",
-  "itemId": "stock-004-uuid",
-  "productName": "Garlic Bread",
-  "deletedAt": "2025-11-12T12:00:00Z"
+  "success": true,
+  "message": "Inventory item deleted",
+  "data": null
 }
 ```
 
-#### Error Response (403):
+#### Error Response (400):
 
 ```json
 {
-  "error": "Only OWNER can delete inventory items"
+  "success": false,
+  "message": "Cannot delete stock item with remaining quantity"
+}
+```
+
+#### Error Response (401):
+
+```json
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+```
+
+#### Error Response (404):
+
+```json
+{
+  "error": "Stock item not found"
 }
 ```
 
@@ -1142,10 +1338,15 @@ Audit Log:
 
 ```
 Deleted:
-- StockItem { id } (soft delete or hard delete depending on implementation)
+- StockItem { id } (hard delete)
+
+Verification Performed:
+- Item exists
+- Item's tenantId matches user's tenantId from JWT
+- Item quantity is 0 (cannot delete if qty > 0)
 
 Audit Log:
-- STOCK_DELETED action recorded
+- DELETE action recorded with oldValues
 ```
 
 ---

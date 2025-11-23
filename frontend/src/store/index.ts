@@ -26,7 +26,19 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      setUser: (user) => set({ user, isAuthenticated: true }),
+      setUser: (user) => {
+        set({ user, isAuthenticated: true });
+        // Also save tenantId and branchId to localStorage for quick access
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(user));
+          if (user.tenantId) {
+            localStorage.setItem("tenantId", user.tenantId);
+          }
+          if (user.branchId) {
+            localStorage.setItem("branchId", user.branchId);
+          }
+        }
+      },
       setTokens: (accessToken, refreshToken) => {
         set({ accessToken, refreshToken, isAuthenticated: true });
         // Ensure tokens are in localStorage for client to use
@@ -51,6 +63,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           localStorage.removeItem("tenantId");
+          localStorage.removeItem("branchId");
         }
       },
     }),

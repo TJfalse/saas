@@ -102,20 +102,29 @@ export async function getDashboardOverview(
  */
 export async function getSalesAnalytics(
   tenantId: string,
-  startDate: string,
-  endDate: string,
+  startDate?: string,
+  endDate?: string,
   branchId?: string
 ) {
   try {
-    if (!tenantId || !startDate || !endDate) {
-      throw new Error("Tenant ID, start date, and end date are required");
+    if (!tenantId) {
+      throw new Error("Tenant ID is required");
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // If no dates provided, use last 30 days
+    let start = new Date();
+    let end = new Date();
 
-    if (start > end) {
-      throw new Error("Start date must be before end date");
+    if (startDate && endDate) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+
+      if (start > end) {
+        throw new Error("Start date must be before end date");
+      }
+    } else {
+      // Default to last 30 days
+      start.setDate(start.getDate() - 30);
     }
 
     // Set end date to end of day
@@ -147,14 +156,19 @@ export async function getSalesAnalytics(
       totalOrders: orders.length,
       totalRevenue: orders.reduce((sum, order) => sum + Number(order.total), 0),
       totalTax: orders.reduce((sum, order) => sum + Number(order.tax), 0),
-      totalDiscount: orders.reduce((sum, order) => sum + Number(order.discount), 0),
+      totalDiscount: orders.reduce(
+        (sum, order) => sum + Number(order.discount),
+        0
+      ),
       orders,
-      startDate,
-      endDate,
+      startDate: start.toISOString().split("T")[0],
+      endDate: end.toISOString().split("T")[0],
     };
 
     logger.info(
-      `Sales analytics fetched for tenant ${tenantId} from ${startDate} to ${endDate}`
+      `Sales analytics fetched for tenant ${tenantId} from ${
+        start.toISOString().split("T")[0]
+      } to ${end.toISOString().split("T")[0]}`
     );
 
     return analytics;
@@ -219,7 +233,8 @@ export async function getRevenueCharts(
     orders.forEach((order) => {
       const date = new Date(order.createdAt).toISOString().split("T")[0];
       const monthKey = date.substring(0, 7); // YYYY-MM
-      monthlyData[monthKey] = (monthlyData[monthKey] || 0) + Number(order.total);
+      monthlyData[monthKey] =
+        (monthlyData[monthKey] || 0) + Number(order.total);
     });
 
     const charts = {

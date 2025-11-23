@@ -83,6 +83,7 @@ class AuthService {
           name: user.name,
           role: user.role,
           tenantId: user.tenantId,
+          branchId: user.branchId,
           tenant: user.tenant,
         },
       };
@@ -93,7 +94,7 @@ class AuthService {
   }
 
   /**
-   * User registration (creates user and tenant)
+   * User registration (creates user, tenant, and default branch)
    */
   static async register({
     email,
@@ -114,9 +115,9 @@ class AuthService {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-      // Create tenant and user in transaction
+      // Create tenant, branch, and user in transaction
       const result = await prisma.$transaction(async (tx) => {
-        // Create tenant
+        // 1. Create tenant
         const tenant = await tx.tenant.create({
           data: {
             name: tenantName,
@@ -124,7 +125,15 @@ class AuthService {
           },
         });
 
-        // Create user (owner)
+        // 2. Create default branch
+        const branch = await tx.branch.create({
+          data: {
+            tenantId: tenant.id,
+            name: "Main Branch",
+          },
+        });
+
+        // 3. Create user (owner) and assign to default branch
         const user = await tx.user.create({
           data: {
             email,
@@ -132,17 +141,18 @@ class AuthService {
             name,
             role: "OWNER",
             tenantId: tenant.id,
+            branchId: branch.id,
             isActive: true,
           },
         });
 
-        return { tenant, user };
+        return { tenant, branch, user };
       });
 
       const { accessToken, refreshToken } = this.generateTokens(result.user);
 
       logger.info(
-        `User registered: ${result.user.id} with tenant: ${result.tenant.id}`
+        `User registered: ${result.user.id} with tenant: ${result.tenant.id} and branch: ${result.branch.id}`
       );
 
       return {
@@ -154,7 +164,10 @@ class AuthService {
           name: result.user.name,
           role: result.user.role,
           tenantId: result.tenant.id,
+          branchId: result.branch.id,
         },
+        tenant: result.tenant,
+        branch: result.branch,
       };
     } catch (error) {
       logger.error("Registration error:", error);

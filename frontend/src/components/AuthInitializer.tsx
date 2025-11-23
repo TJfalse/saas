@@ -17,6 +17,7 @@ export const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
     const savedRefreshToken = localStorage.getItem("refreshToken");
     const savedUser = localStorage.getItem("user");
     const savedTenantId = localStorage.getItem("tenantId");
+    const savedBranchId = localStorage.getItem("branchId");
 
     if (savedAccessToken && savedRefreshToken && savedUser) {
       try {
@@ -24,9 +25,15 @@ export const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
         authStore.setTokens(savedAccessToken, savedRefreshToken);
         authStore.setUser(user);
 
-        // Restore tenant data
-        if (savedTenantId) {
-          dataStore.setTenantId(savedTenantId);
+        // Restore tenant and branch data
+        const tenantIdToSet = savedTenantId || user.tenantId;
+        const branchIdToSet = savedBranchId || user.branchId;
+
+        if (tenantIdToSet) {
+          dataStore.setTenantId(tenantIdToSet);
+        }
+        if (branchIdToSet) {
+          dataStore.setBranchId(branchIdToSet);
         }
       } catch (e) {
         // If parsing fails, clear auth

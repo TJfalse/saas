@@ -32,21 +32,26 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     const loadDashboard = async () => {
-      if (!tenantId) {
-            toast.error("tenant Id not set");
-            setLoading(false);
-            return
-}
+      // Get tenantId from store OR localStorage as fallback
+      let actualTenantId = tenantId;
+      if (!actualTenantId) {
+        actualTenantId = localStorage.getItem("tenantId");
+      }
 
+      if (!actualTenantId) {
+        toast.error("Tenant ID not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
         const [overviewData, analyticsData, chartsData, productsData] =
           await Promise.all([
-            dashboardService.getOverview(tenantId),
-            dashboardService.getSalesAnalytics(tenantId),
-            dashboardService.getRevenueCharts(tenantId),
-            dashboardService.getTopProducts(tenantId, 5),
+            dashboardService.getOverview(actualTenantId),
+            dashboardService.getSalesAnalytics(actualTenantId),
+            dashboardService.getRevenueCharts(actualTenantId),
+            dashboardService.getTopProducts(actualTenantId, 5),
           ]);
 
         setOverview(overviewData);

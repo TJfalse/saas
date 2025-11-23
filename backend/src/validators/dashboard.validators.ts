@@ -15,17 +15,15 @@ export const tenantIdParamSchema = Joi.object({
 export const analyticsQuerySchema = Joi.object({
   startDate: Joi.string()
     .pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .required()
+    .optional()
     .messages({
       "string.pattern.base": "startDate must be in format YYYY-MM-DD",
-      "any.required": "startDate is required",
     }),
   endDate: Joi.string()
     .pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .required()
+    .optional()
     .messages({
       "string.pattern.base": "endDate must be in format YYYY-MM-DD",
-      "any.required": "endDate is required",
     }),
 });
 

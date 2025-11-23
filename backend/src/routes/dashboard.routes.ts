@@ -19,29 +19,33 @@ import {
 
 const router = Router();
 
-// Apply auth and tenant middleware to all dashboard routes
+// Apply auth middleware to all dashboard routes
 router.use(authMiddleware);
-router.use(tenantMiddleware);
 
+// Apply tenant middleware AFTER tenantId is extracted from params
 router.get(
   "/overview/:tenantId",
   validateParams(tenantIdParamSchema),
+  tenantMiddleware,
   DashboardController.getDashboardOverview
 );
 router.get(
   "/analytics/:tenantId",
   validateParams(tenantIdParamSchema),
+  tenantMiddleware,
   validateQuery(analyticsQuerySchema),
   DashboardController.getSalesAnalytics
 );
 router.get(
   "/charts/:tenantId",
   validateParams(tenantIdParamSchema),
+  tenantMiddleware,
   DashboardController.getRevenueCharts
 );
 router.get(
   "/top-products/:tenantId",
   validateParams(tenantIdParamSchema),
+  tenantMiddleware,
   validateQuery(topProductsQuerySchema),
   DashboardController.getTopProducts
 );

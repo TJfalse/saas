@@ -35,8 +35,9 @@ const LoginPage: React.FC = () => {
       setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
       setTenantId(response.user.tenantId);
-      // Persist tenantId to localStorage
+      // Persist tenant and branch IDs to localStorage
       localStorage.setItem("tenantId", response.user.tenantId);
+      localStorage.setItem("branchId", response.user.branchId || "");
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error: any) {
